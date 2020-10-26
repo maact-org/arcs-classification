@@ -29,7 +29,6 @@ except:
     train_model_with_csv(model)
 
 # Get scores from text
-model.summary()
 sentences = utils.get_sentences_from_text("data/madamebovary.txt")
 get_score = utils.get_score_from_hd()
 df = utils.get_story_scores(get_score, sentences, window=0.03)
@@ -37,6 +36,6 @@ sns.lineplot(x=df.index, y=df.values, data=df)
 a = df.values.reshape(1, 33, 1)
 result = model.predict(a)
 i = np.argmax(result)
+# Print predicted class
 print(classes[i])
-print(result)
 plt.show()
