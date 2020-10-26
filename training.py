@@ -1,44 +1,32 @@
-import trax
-from trax import layers as tl
-from trax.supervised import training
+import numpy as np
+import tensorflow as tf
+import pandas as pd
 
 
-def create_model(input_size):
+def prepare_and_train_model(input_shape, train_data, train_labels):
 
-    model = tl.Serial(
-        tl.convolution.Conv1d(input_size, 3),
-        tl.pooling.AvgPool(3, None),
-        tl.attention(4)
-    )
+    model = tf.keras.Sequential([
+        tf.keras.layers.InputLayer(input_shape=(33, 1)),
+        tf.keras.layers.Conv1D(10, (5,)),
+        tf.keras.layers.AveragePooling1D(pool_size=3),
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.Dense(6, activation='sigmoid'),
+    ])
+
+    model.compile(optimizer='adam',
+              loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+              metrics=['accuracy'])
+
+    model.fit(train_data, train_labels, epochs=10)
     return model
 
 
-def prepare_tasks(train_stream, eval_stream):
-    train_task = training.TrainTask(
-        labeled_data = train_stream,
-        loss_layer = tl.CrossEntropyLoss(),
-        optimizer = trax.optimizers.Adam(0.01),
-        lr_schedule = trax.lr.warmup_and_rsqrt_decay(1000, 0.01),
-        n_steps_per_checkpoint = 10,
-
-    )
-
-    eval_task = training.EvalTask(
-
-        labeled_data=eval_stream,
-        metrics=[tl.CrossEntropyLoss(), tl.Accuracy()],
-    )
-
-
-def train_model(Model, train_task, eval_task):
-    training_loop = training.Loop(
-                        Model(mode='train'),
-                        train_task,
-                        eval_tasks=[eval_task],
-                        output_dir='output')
-
-
-if __name__ == "__main__":
-    Model = create_model(33)
-    train_task, eval_task = prepare_tasks()
-    train_model(Model, train_task, eval_task)
+def load_example_inputs():
+    df = pd.read_csv("training/arcs.csv")
+    data = np.array([])
+    labels = np.array([])
+    for index, row in df.iterrows():
+        data = np.append(data, [[row[i] for i in range(1, 34)]])
+        labels = np.append(labels, [row['category']])
+    data = data.reshape(df.shape[0], 33, 1)
+    return data, labels
