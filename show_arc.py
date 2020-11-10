@@ -6,8 +6,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import os
 
-
-text = "data/janeeyre.txt"
+"Shows the arc of an image given a text"
+text = "texts/janeeyre.txt"
 sentences = utils.get_sentences_from_text(text)
 get_score = utils.get_score_from_hd()
 df = utils.get_story_scores(get_score, sentences, window=0.03)

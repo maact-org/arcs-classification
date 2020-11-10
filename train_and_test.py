@@ -16,10 +16,6 @@ def train_model_with_csv(model):
         labels = np.append(labels, [row['category']])
     data = data.reshape(df.shape[0], 33, 1)
     history = model.fit(data, labels, epochs=500)
-    model_json = model.to_json()
-    with open('model-arcs.json', "w") as json_file:
-        json_file.write(model_json)
-    model.save_weights('model-arcs.h5')
     print(history.history)
 
 def get_class(text, plot=False):
@@ -31,28 +27,25 @@ def get_class(text, plot=False):
     result = model.predict(a)
     if plot:
         sns.lineplot(x=df.index, y=df.values, data=df)
-        plt.savefig(text)
+        plt.show()
+        plt.clf()
     i = np.argmax(result)
     return result[0], i
 
-classes = ['rise', 'fall', 'rise-fall-rise', 'fall-rise-fall', 'fall-rise', 'rise-fall']
+if __name__ == "__main__":
+    classes = ['rise', 'fall', 'rise-fall-rise', 'fall-rise-fall', 'fall-rise', 'rise-fall']
 
-# If already trained
-arcs = arcs.ArcModel(input_shape=(33, 1))
+    # If already trained
+    arcs = arcs.ArcModel(input_shape=(33, 1))
 
-try:
-    arcs.load_model()
-    model = arcs.model
-except Exception as e:
-    model = arcs.model
-    train_model_with_csv(model)
-    arcs.save_model()
-
-files = os.listdir("/home/valentina/Downloads/txts")
-for file in files:
     try:
-        result, i = get_class("/home/valentina/Downloads/txts/"+file, plot=True)
-    except:
-        pass
-    else:
-        print(file)
+        arcs.load_model()
+        model = arcs.model
+    except Exception as e:
+        model = arcs.model
+        train_model_with_csv(model)
+        arcs.save_model()
+
+    files = os.listdir("texts")
+    for file in files:
+        result, i = get_class("texts/"+file, plot=True, save_image=True)

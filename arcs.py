@@ -20,19 +20,18 @@ class ArcModel:
 
         self.model = model
 
-    def load_model(self, file='model-arcs.json'):
+    def load_model(self, file="model/model.h5"):
         """
         Loads the model from json file
         :param file: The name of the file to load
         :return: None
         """
-        self.model = model_from_json(file)
+        self.model = tf.keras.models.load_model(file)
 
-    def save_model(self, file='model-arcs.json'):
+    def save_model(self, file="model/model.h5"):
         """
         Saves the model to json file
         :param file: The name of the file for saving
         :return: None
         """
-        with open(file, "w") as json_file:
-            json_file.write(self.model)
+        self.model.save(file)
