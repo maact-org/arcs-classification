@@ -49,6 +49,7 @@ if __name__ == "__main__":
     files = os.listdir("texts")
     for file in files:
         try:
-            result, i = get_class("texts/"+file, plot=True)
+            result, i = get_class("texts/"+file)
+            print("{} was classified as {}".format(file, classes[i]))
         except:
             raise Exception("An error ocurred when trying to read {}".format(file))
