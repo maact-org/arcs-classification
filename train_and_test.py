@@ -27,7 +27,7 @@ def get_class(text, plot=False):
     result = model.predict(a)
     if plot:
         sns.lineplot(x=df.index, y=df.values, data=df)
-        plt.show()
+        plt.savefig(text+".png")
         plt.clf()
     i = np.argmax(result)
     return result[0], i
@@ -48,4 +48,8 @@ if __name__ == "__main__":
 
     files = os.listdir("texts")
     for file in files:
-        result, i = get_class("texts/"+file, plot=True, save_image=True)
+        try:
+            result, i = get_class("texts/"+file, plot=True)
+        except:
+            # raise Exception("An error ocurred when trying to read {}".format(file))
+            pass
