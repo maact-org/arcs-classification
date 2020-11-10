@@ -51,5 +51,4 @@ if __name__ == "__main__":
         try:
             result, i = get_class("texts/"+file, plot=True)
         except:
-            # raise Exception("An error ocurred when trying to read {}".format(file))
-            pass
+            raise Exception("An error ocurred when trying to read {}".format(file))
