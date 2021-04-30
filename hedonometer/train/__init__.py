@@ -50,14 +50,15 @@ def _train_epoch(
         input_ids = d["input_ids"].to(device)
         attention_mask = d["attention_mask"].to(device)
         targets = d["targets"].to(device)
+        one_hot= d["one_hot"].to(device)
         outputs = model(
             input_ids=input_ids,
             attention_mask=attention_mask
         )
-        predictions = torch.round(outputs)
+        _, predictions = torch.max(outputs, dim=1)
         correct_predictions += torch.sum(predictions == targets)
         total_predictions += len(targets)
-        loss = loss_fn(outputs.float(), targets.float())
+        loss = loss_fn(outputs.float(), one_hot.float())
         losses.append(loss.item())
         loss.backward()
         nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
@@ -93,15 +94,16 @@ def eval_model(
             input_ids = d["input_ids"].to(device)
             attention_mask = d["attention_mask"].to(device)
             targets = d["targets"].to(device)
+            one_hot=d["one_hot"].to(device)
             outputs = model(
                 input_ids=input_ids,
                 attention_mask=attention_mask
             )
-            loss = loss_fn(outputs.float(), targets.float())
-            losses.append(loss.item())
-            total_predictions += len(targets)
-            predictions = torch.round(outputs)
+            _, predictions = torch.max(outputs, dim=1)
             correct_predictions += torch.sum(predictions == targets)
+            total_predictions += len(targets)
+            loss = loss_fn(outputs.float(), one_hot.float())
+            losses.append(loss.item())
 
     return np.mean(losses), correct_predictions / total_predictions
 

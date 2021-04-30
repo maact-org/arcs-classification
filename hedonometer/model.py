@@ -10,8 +10,8 @@ class SentimentClassifier(nn.Module):
         self.name = name
         self.bert = BertModel.from_pretrained(pretrained_model)
         self.drop = nn.Dropout(p=0.3)
-        self.out = nn.Linear(self.bert.config.hidden_size, 1)
-        self.probability = nn.Sigmoid()
+        self.out = nn.Linear(self.bert.config.hidden_size, 2)
+        self.probability = nn.Softmax()
 
     def forward(self, input_ids, attention_mask):
         dect = self.bert(

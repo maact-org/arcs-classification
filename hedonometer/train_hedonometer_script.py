@@ -25,7 +25,7 @@ if __name__ == "__main__":
     test_data_loader = get_prepared_dataset(df_raw_test, tokenizer, st.MAX_LEN, st.BATCH_SIZE)
 
     # Creating a model
-    model = SentimentClassifier(st.PRE_TRAINED_MODEL, 'sentiment_m_cleaned')
+    model = SentimentClassifier(st.PRE_TRAINED_MODEL, 'sentiment_m_cleaned_double_out')
     model.to(st.DEVICE)
 
     # Defining an optimizer

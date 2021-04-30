@@ -48,7 +48,7 @@ def get_prepared_dataset(df: pd.DataFrame, tokenizer, max_len, batch_size):
 
 
 class TweeterDataSet(Dataset):
-    def __init__(self, texts: pd.DataFrame, tokenizer, max_len, targets=None, label_encoder=None, n_classes=12):
+    def __init__(self, texts: pd.DataFrame, tokenizer, max_len, targets=None, label_encoder=None, n_classes=2):
         self.texts = texts
         self.targets = targets
         self.label_encoder = label_encoder
