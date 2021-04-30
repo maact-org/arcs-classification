@@ -1,5 +1,4 @@
 import tensorflow as tf
-from keras.models import model_from_json
 
 
 class ArcModel:
@@ -15,8 +14,8 @@ class ArcModel:
         ])
 
         model.compile(optimizer='adam',
-                  loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-                  metrics=['accuracy'])
+                      loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+                      metrics=['accuracy'])
 
         self.model = model
 

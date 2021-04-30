@@ -4,12 +4,20 @@ from torch.utils.data import DataLoader
 from transformers import get_linear_schedule_with_warmup
 
 import numpy as np
+import pandas as pd
 
 import hedonometer.settings as st
 from hedonometer.model import SentimentClassifier
 
-
 # from metrics import measure_predicted_vs_targets, add_single_metric
+MEMORY = pd.DataFrame(data={
+    'train_loss': [],
+    'train_acc': [],
+    'val_loss': [],
+    'val_acc': []},
+)
+
+CURRENT_EPOCH = 0
 
 
 def _train_epoch(
@@ -34,22 +42,22 @@ def _train_epoch(
     """
     model = model.train()
     losses = []
-
+    total_predictions = 0
+    correct_predictions = 0
     number_of_batches = len(data_loader)
 
     for i, d in enumerate(data_loader):
         input_ids = d["input_ids"].to(device)
         attention_mask = d["attention_mask"].to(device)
         targets = d["targets"].to(device)
-        one_hot = d["one_hot"].to(device)
         outputs = model(
             input_ids=input_ids,
             attention_mask=attention_mask
         )
-
-        # measure_predicted_vs_targets(outputs, one_hot, batch_size=data_loader.batch_size)
-
-        loss = loss_fn(outputs, targets)
+        predictions = torch.round(outputs)
+        correct_predictions += torch.sum(predictions == targets)
+        total_predictions += len(targets)
+        loss = loss_fn(outputs.float(), targets.float())
         losses.append(loss.item())
         loss.backward()
         nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
@@ -57,6 +65,7 @@ def _train_epoch(
         scheduler.step()
         optimizer.zero_grad()
         print("{:.1f}%: loss:{:.7f}".format(100 * i / number_of_batches, np.mean(losses)), end='\r')
+    return np.mean(losses), correct_predictions / total_predictions
 
 
 def eval_model(
@@ -66,15 +75,17 @@ def eval_model(
         device: str):
     """
     Evaluates
+    :param loss_fn: The loss function to be used in the model evaluation(CROSS_ENTROPY)
     :param model: he model to be evaluated, must be a ClassClassifier
     :param data_loader: The data loader containing the data for the evaluation
-    :param loss_fn: The loss function to be used in the evaluation
     :param device: A string specifying the device to be used usually cuda:0 or cpu
     :return:
         validation_acc: Accuracy of the model over all entries in the data_loader
         validation_loss: The mean loss over all of the batches in the data_loader
     """
     model = model.eval()
+    correct_predictions = 0
+    total_predictions = 0
     losses = []
 
     with torch.no_grad():
@@ -82,44 +93,42 @@ def eval_model(
             input_ids = d["input_ids"].to(device)
             attention_mask = d["attention_mask"].to(device)
             targets = d["targets"].to(device)
-            one_hot = d["one_hot"].to(device)
             outputs = model(
                 input_ids=input_ids,
                 attention_mask=attention_mask
             )
+            loss = loss_fn(outputs.float(), targets.float())
+            losses.append(loss.item())
+            total_predictions += len(targets)
+            predictions = torch.round(outputs)
+            correct_predictions += torch.sum(predictions == targets)
 
-            loss = loss_fn(outputs, targets)
-            losses.append(loss)
-            # add_single_metric(loss, "loss")
-
-            # outputs_int = (outputs > 0.5).int()
-            # measure_predicted_vs_targets(outputs_int, one_hot)
-    return np.mean(losses)
+    return np.mean(losses), correct_predictions / total_predictions
 
 
 # trains the model
-def train_model(model, loss_fn, optimizer, train_data_loader, epochs=100):
+def train_model(model, loss_fn, optimizer, train_data_loader, val_data_loader, epochs=10):
     """
     Trains the model and saves a checkpoint
-    :param model: Model wich is going to be trained
+    :param model: Model which is going to be trained
     :param loss_fn: Selected los function for evaluating training
     :param optimizer: Selected optimizer
     :param train_data_loader: Data for training
+    :param val_data_loader: Data for validation
     :param epochs: Number of epochs
     """
+    global MEMORY
     total_steps = len(train_data_loader) * epochs
     scheduler = get_linear_schedule_with_warmup(
         optimizer,
         num_warmup_steps=0,
         num_training_steps=total_steps
     )
-
-    train_size = len(train_data_loader.dataset)
-
+    best_accuracy = 0
     for epoch in range(epochs):
         print(f'Epoch {epoch + 1}/{epochs}')
         print('-' * 10)
-        _train_epoch(
+        train_loss, train_acc = _train_epoch(
             model,
             train_data_loader,
             loss_fn,
@@ -128,20 +137,17 @@ def train_model(model, loss_fn, optimizer, train_data_loader, epochs=100):
             scheduler,
         )
 
-        # val_acc, val_loss = eval_model(
-        #     model,
-        #     val_data_loader,
-        #     loss_fn,
-        #     st.DEVICE,
-        #     val_size
-        # )
-        # print(f'Val   loss {val_loss} accuracy {val_acc}')
-        # print()
-        # history['train_acc'].append(train_acc)
-        # history['train_loss'].append(train_loss)
-        # history['val_acc'].append(val_acc)
-        # history['val_loss'].append(val_loss)
-        # if val_acc > best_accuracy:
-        #     print("save...")
-        #     torch.save(model.state_dict(), st.SAVE_PATH.format(model.name))
-        #     best_accuracy = val_acc
+        val_loss, val_acc = eval_model(model, val_data_loader, loss_fn, st.DEVICE)
+        MEMORY = MEMORY.append({
+            'train_loss': train_loss,
+            'train_acc': train_acc,
+            'val_loss': val_loss,
+            'val_acc': val_acc
+        }, ignore_index=True)
+        print(f'Val accuracy {val_acc}')
+        print()
+        if val_acc > best_accuracy:
+            print("save...")
+            torch.save(model.state_dict(), st.SAVE_PATH.format(model.name))
+            best_accuracy = val_acc
+    MEMORY.to_csv('hedonometer/data/memory.csv')

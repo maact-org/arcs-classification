@@ -1,4 +1,3 @@
-from os.path import exists
 
 import torch
 import pandas as pd
@@ -11,26 +10,17 @@ import warnings
 warnings.filterwarnings("ignore")
 
 
-def get_label_encoder(df: pd.DataFrame = None, le_path=""):
+def get_label_encoder():
     """
-    If the file LABEL_ENCODER_PATH exists it loads this file as the label encoder and returns it, otherwise it fit a
-    label encoder to the given data frame, saves it and returns it.
-    :param df: metabooks dataset
-    :param le_path: Path of the label encoder
+    Returns a label encoder that maps 'positive' to 1 and 'negative to 0.
     :return: A label encoder for the classes in the metabooks dataset
     """
     le = LabelEncoder()
-    if exists(le_path):
-        print("Using local le")
-        le.classes_ = np.load(le_path, allow_pickle=True)
-    else:
-        print("New label encoder")
-        le.fit(df.code)
-        np.save(le_path, le.classes_)
+    le.classes_ = np.array(['negative', 'positive'])
     return le
 
 
-def get_prepared_dataset(df: pd.DataFrame, tokenizer, max_len, batch_size, le_path=""):
+def get_prepared_dataset(df: pd.DataFrame, tokenizer, max_len, batch_size):
     """
     Creates a data loader with a dataset of tokenized data, labeled and with the original text
     :param df: Data Frame containing fields MainDescription and class_id
@@ -40,12 +30,12 @@ def get_prepared_dataset(df: pd.DataFrame, tokenizer, max_len, batch_size, le_pa
     :return: A data loader for training or validation
     """
 
-    le = get_label_encoder(df, le_path=le_path)
-    df['class_id'] = le.transform(df.code)
+    le = get_label_encoder()
+    df['tag'] = le.transform(df.tag)
 
     ds = TweeterDataSet(
         texts=df.text,
-        targets=df.sentiment_id,
+        targets=df.tag,
         label_encoder=le,
         tokenizer=tokenizer,
         max_len=max_len
@@ -86,7 +76,6 @@ class TweeterDataSet(Dataset):
         return result
 
     def _clean(self):
-
         oh_enc = OneHotEncoder()
 
         encoding_function = lambda text: self.tokenizer.encode_plus(

@@ -5,11 +5,13 @@ import numpy as np
 
 
 class SentimentClassifier(nn.Module):
-    def __init__(self, pretrained_model):
+    def __init__(self, pretrained_model, name):
         super(SentimentClassifier, self).__init__()
+        self.name = name
         self.bert = BertModel.from_pretrained(pretrained_model)
         self.drop = nn.Dropout(p=0.3)
         self.out = nn.Linear(self.bert.config.hidden_size, 1)
+        self.probability = nn.Sigmoid()
 
     def forward(self, input_ids, attention_mask):
         dect = self.bert(
@@ -17,13 +19,13 @@ class SentimentClassifier(nn.Module):
             attention_mask=attention_mask
         )
         pooled_output = dect['pooler_output']
-        output = self.drop(pooled_output)
-        return self.out(output)
+        dropped = self.drop(pooled_output)
+        output = self.out(dropped)
+        return self.probability(output).squeeze(-1)
 
     def get_sentiment_distribution(self, data_loader, device):
         self.eval()
         predictions = []
-        distribution = nn.Sigmoid()
         preds = []
 
         with torch.no_grad():
@@ -34,8 +36,7 @@ class SentimentClassifier(nn.Module):
                     input_ids=input_ids,
                     attention_mask=attention_mask
                 )
-                dist = distribution(outputs)
-                predictions += [dist]
+                predictions += [outputs]
         for pre in predictions:
             preds += [pre.cpu().numpy()]
         preds = np.asarray(preds)
