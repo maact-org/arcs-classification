@@ -62,3 +62,12 @@ def get_story_scores(get_score, words, window=33):
     min = df.min()
     df = df.apply(lambda x: 2*((x-min)/(max-min))-1)
     return df
+
+def build_dataset_from_folders(path):
+    df = pd.DataFrame(columns=['text', 'arc'] )
+    for directory in os.listdir(path):
+        for filename in os.listdir(os.path.join(path, directory)):
+            with open(os.path.join(path, directory, filename)) as f:
+                text = f.read()
+                current_df = pd.DataFrame({'text': [text], 'arc': [os.path.basename(directory)]})
+                df = df.append(current_df, ignore_index=True)
