@@ -12,6 +12,7 @@ tokenizer = BertTokenizer.from_pretrained(st.BERT_MODEL_PATH, do_lower_case=Fals
 tokenized = tokenizer("Estou muito feliz com meu gatinho")
 
 books = utils.build_dataset_from_folders(st.DATA_SET_EVAL_PATH)
+print(books)
 for book in books:
     print(utils.get_score_from_sentiment_model(book, tokenizer))
 

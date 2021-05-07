@@ -4,13 +4,12 @@ from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import numpy as np
 import pandas as pd
 import math
-from hedonometer.DatasetSentiment import DatasetSentiments
 import settings as st
 import hedonometer.settings as sts
 import os
 from hedonometer.model import SentimentClassifier
 import torch
-from torch.utils.data import Dataset, DataLoader
+from hedonometer.etl import get_prepared_dataset
 
 def get_sentences_from_text(text):
     """Loads a list of sentences from a text"""
@@ -48,14 +47,11 @@ def get_score_from_vader():
     return get_score
 
 def get_score_from_sentiment_model( book, tokenizer):
-    
-    print(book)
     model = SentimentClassifier(st.BERT_MODEL_PATH, "sentimentis")
     model.load_state_dict(
         torch.load(st.SC_MODEL_PATH, map_location=torch.device("cpu")))
-    sentimet_dataset = DatasetSentiments(tokenizer, book)
-    books_dataloader = DataLoader(sentimet_dataset, batch_size=sts.BATCH_SIZE, shuffle=True)
-    return model.get_sentiment_distribution(books_dataloader, sts.DEVICE) 
+    data_loader = get_prepared_dataset(book, tokenizer, sts.MAX_LEN, sts.BATCH_SIZE)
+    return model.get_sentiment_distribution(data_loader, sts.DEVICE) 
 
 def get_story_scores(get_score, words, window=33):
     """Returns a DataFrame of scores"""
@@ -81,12 +77,17 @@ def get_story_scores(get_score, words, window=33):
 
 def build_dataset_from_folders(path):
     books = [] 
-    df = pd.DataFrame(columns=['text', 'arc'] )
+    df = pd.DataFrame(columns=['text', 'tag'] )
     for directory in os.listdir(path):
         for filename in os.listdir(os.path.join(path, directory)):
             with open(os.path.join(path, directory, filename)) as f:
                 text = f.read()
-                current_df = pd.DataFrame({'text': [text], 'arc': [os.path.basename(directory)]})
+                current_df = pd.DataFrame(columns=['text', 'tag'])
+                for piece in text.split("."):
+                    current_df = current_df.append(pd.DataFrame({'text': [piece], 'tag': [os.path.basename(directory)]})) 
                 books.append(current_df)
+                print(books)
+                break
+            break
     return books
 

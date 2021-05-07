@@ -16,7 +16,7 @@ def get_label_encoder():
     :return: A label encoder for the classes in the metabooks dataset
     """
     le = LabelEncoder()
-    le.classes_ = np.array(['negative', 'positive'])
+    le.classes_ = np.array(['negative', 'positive', 'F', 'FRF', 'FR', 'RFR', 'RF', 'R'])
     return le
 
 
