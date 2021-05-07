@@ -135,3 +135,4 @@ data/
 *.png
 *.csv
 *.bin
+*.DS_Store
