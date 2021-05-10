@@ -53,6 +53,7 @@ def get_score_from_sentiment_model( book, tokenizer):
     data_loader = get_prepared_dataset(book, tokenizer, sts.MAX_LEN, sts.BATCH_SIZE)
     return model.get_sentiment_distribution(data_loader, sts.DEVICE) 
 
+
 def get_story_scores(get_score, words, window=33):
     """Returns a DataFrame of scores"""
     scores = np.array([])
@@ -76,18 +77,19 @@ def get_story_scores(get_score, words, window=33):
     return df
 
 def build_dataset_from_folders(path):
-    books = [] 
-    df = pd.DataFrame(columns=['text', 'tag'] )
+    index = 0
+    books_df = pd.DataFrame(columns=['text', 'tag'])
     for directory in os.listdir(path):
+        books_in_dir = []
         for filename in os.listdir(os.path.join(path, directory)):
             with open(os.path.join(path, directory, filename)) as f:
                 text = f.read()
-                current_df = pd.DataFrame(columns=['text', 'tag'])
-                for piece in text.split("."):
-                    current_df = current_df.append(pd.DataFrame({'text': [piece], 'tag': [os.path.basename(directory)]})) 
-                books.append(current_df)
-                print(books)
-                break
+                books_in_dir.append(text)
+                tag = os.path.basename(directory)
+                current_df = pd.DataFrame({"text": text, "tag": tag}, index=[index])
+                books_df = pd.concat([books_df, current_df], ignore_index=True)
+                index += 1
+            # Remove break
             break
-    return books
+    return books_df
 
