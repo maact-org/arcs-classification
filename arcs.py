@@ -10,7 +10,7 @@ class ArcModel:
             tf.keras.layers.Conv1D(5, (3,)),
             tf.keras.layers.AveragePooling1D(pool_size=2),
             tf.keras.layers.Flatten(),
-            tf.keras.layers.Dense(6, activation='sigmoid'),
+            tf.keras.layers.Dense(6, activation='softmax'),
         ])
 
         model.compile(optimizer='adam',

@@ -5,36 +5,67 @@ import torch
 import utils
 from os import path
 import logging
+from arcs import ArcModel
+from os import walk
+import pandas as pd
+import numpy as np
+import tensorflow as tf
+import training as trn
+import evaluation as evl
 
-sc = SentimentClassifier(st.BERT_MODEL_PATH, "sentimentis")
-sc.load_state_dict(torch.load(st.SC_MODEL_PATH, map_location=torch.device("cpu")))
 
-# Creating a tokenizer
-tokenizer = BertTokenizer.from_pretrained(st.BERT_MODEL_PATH, do_lower_case=False)
+logging.basicConfig(encoding='utf-8', level=logging.INFO)
 
+# sc = SentimentClassifier(st.BERT_MODEL_PATH, "sentimentis")
+# sc.load_state_dict(torch.load(st.SC_MODEL_PATH, map_location=torch.device("cpu")))
+#
+# # Creating a tokenizer
+# tokenizer = BertTokenizer.from_pretrained(st.BERT_MODEL_PATH, do_lower_case=False)
+#
 books_df = utils.build_dataset_from_folders(st.DATA_SET_EVAL_PATH)
+books_df.to_csv("books_arcs.csv")
 
-if path.exists(st.DATALOADER_TOKENIZED_PATH):
-    logging.info("Loading tokenized dataloader...")
-    tokenized_dl = torch.load(st.DATALOADER_TOKENIZED_PATH)
-else:
-    logging.info("Generating a new dataloader...")
-    tokenized_dl = utils.get_prepared_dataset(books_df, tokenizer, st.MAX_LEN, st.BATCH_SIZE)
-    logging.info("Saving tokenized dataloader...")
-    torch.save(tokenized_dl, st.DATALOADER_TOKENIZED_PATH)
+#
+# if path.exists(st.DATALOADER_TOKENIZED_PATH):
+#     logging.info("Loading tokenized dataloader...")
+#     tokenized_dl = torch.load(st.DATALOADER_TOKENIZED_PATH)
+# else:
+#     logging.info("Generating a new dataloader...")
+#     tokenized_dl = utils.get_prepared_dataset(books_df, tokenizer, st.MAX_LEN, st.BATCH_SIZE)
+#     logging.info("Saving tokenized dataloader...")
+#     torch.save(tokenized_dl, st.DATALOADER_TOKENIZED_PATH)
 
-for (idx, row) in enumerate(tokenized_dl):
-    print(row)
-    # print(utils.get_score_from_sentiment_model(book, tokenizer))
+
+model = ArcModel(input_shape=(33, 1))
+# model.load_model(file='data/arcs_classifier.h5')
+model.model = trn.train_model_with_csv(
+                        model.model,
+                        file_path="training/arcs.csv",
+                        epochs=500)
+
+model.save_model(file='data/arcs_classifier.h5')
+
+
+f = []
+for (dirpath, dirnames, filenames) in walk('series'):
+    f.extend(filenames)
     break
 
-input_ids = torch.Tensor(tokenized.input_ids).view(1, -1).int()
-attention_mask = torch.Tensor(tokenized.attention_mask).view(1, -1).int()
-sentiment = sc(input_ids, attention_mask)
-print(sentiment)
+tags_df = pd.read_csv('data/books.csv')[['book', 'tag']]
+tags_df = tags_df.drop_duplicates().reset_index(drop=True)
+prepared_df = pd.DataFrame()
 
-tokenized = tokenizer("o monstro no meu armário é horrível")
-input_ids = torch.Tensor(tokenized.input_ids).view(1, -1).int()
-attention_mask = torch.Tensor(tokenized.attention_mask).view(1, -1).int()
-sentiment = sc(input_ids, attention_mask)
-print(sentiment)
+for i in range(len(tags_df)):
+    df = pd.read_csv('data/series/book_{}.csv'.format(i))
+    serie = df['value'].to_numpy()
+    prepared_df = prepared_df.append({"book": i, "serie": serie, "tag": tags_df['tag'][i]}, ignore_index=True)
+
+# outputs_df.to_csv("outputs.csv")
+
+# Evaluate model
+evl_df = evl.evaluate_df(model, prepared_df)
+logging.info(evl_df.describe())
+evl_df.to_csv("evaluation.csv")
+
+print(evl_df['accuracy'].mean())
+print(evl_df['loss'].mean())

@@ -136,3 +136,5 @@ data/
 *.csv
 *.bin
 *.DS_Store
+*.torch
+#*.h5

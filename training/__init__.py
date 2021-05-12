@@ -5,18 +5,28 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+import logging
 
 
-def train_model_with_csv(model):
-    df = pd.read_csv("training/arcs.csv")
+def train_model_with_csv(model, file_path="arcs.csv", epochs=500):
+    df = pd.read_csv(file_path).sample(frac=1)
     data = np.array([])
     labels = np.array([])
+
+    le = LabelEncoder()
+    le.fit(df['tag'])
+
+    logging.info("Training into {} classes".format(le.classes_))
     for index, row in df.iterrows():
         data = np.append(data, [[row[i] for i in range(1, 34)]])
-        labels = np.append(labels, [row['category']])
+        label = le.transform([row['tag']])
+        labels = np.append(labels, label)
+
     data = data.reshape(df.shape[0], 33, 1)
-    history = model.fit(data, labels, epochs=500)
-    print(history.history)
+    history = model.fit(data, labels, epochs=epochs)
+    print(history)
+    return model
 
 def get_timeseries(text, method="hedo", plot_as=False):
     # Get scores from text

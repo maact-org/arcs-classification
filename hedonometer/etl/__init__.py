@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from torch.utils.data import DataLoader, Dataset
-
+import string
 import warnings
 
 warnings.filterwarnings("ignore")
@@ -94,10 +94,10 @@ class BooksDataSet(Dataset):
             tag = row['tag']
             tag_to_encode = np.array(tag).reshape(-1, 1)
             one_hot_tag = self.one_hot_encoder.transform(tag_to_encode)
-            current_df = pd.DataFrame({'input_ids': [input_ids],
-                                       'attention_mask': [attention_mask],
-                                       'tag': tag,
-                                       'one_hot_tag': one_hot_tag})
+            current_df = pd.DataFrame({'tag': [tag],
+                                       'one_hot_tag': [one_hot_tag],
+                                       'text': [row['text']]
+                                       })
             tokenized_df = pd.concat([tokenized_df, current_df])
         tokenized_df = tokenized_df.reset_index(drop=True)
 

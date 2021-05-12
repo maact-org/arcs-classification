@@ -11,6 +11,7 @@ from hedonometer.model import SentimentClassifier
 import torch
 from hedonometer.etl import get_prepared_dataset
 
+
 def get_sentences_from_text(text):
     """Loads a list of sentences from a text"""
     def get_words():
@@ -46,6 +47,7 @@ def get_score_from_vader():
         return score
     return get_score
 
+
 def get_score_from_sentiment_model( book, tokenizer):
     model = SentimentClassifier(st.BERT_MODEL_PATH, "sentimentis")
     model.load_state_dict(
@@ -76,6 +78,7 @@ def get_story_scores(get_score, words, window=33):
     df = df.apply(lambda x: 2*((x-min)/(max-min))-1)
     return df
 
+
 def build_dataset_from_folders(path):
     index = 0
     books_df = pd.DataFrame(columns=['text', 'tag'])
@@ -89,7 +92,5 @@ def build_dataset_from_folders(path):
                 current_df = pd.DataFrame({"text": text, "tag": tag}, index=[index])
                 books_df = pd.concat([books_df, current_df], ignore_index=True)
                 index += 1
-            # Remove break
-            break
     return books_df
 
