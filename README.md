@@ -173,7 +173,7 @@ model.load_model(file='data/arcs_classifier.h5')
 ### 4. Predecir
 Se retorna un array de 6 posiciones por cada libro que contiene la probabilidad del libro por cada arco.
 ``` python
-   model.model.predict(data_set)
+model.model.predict(data_set)
 ``` 
 ### 5. Disponer datos de salida como se requiera
 El usuario debe escoger la forma de almacenamiento para los datos de salida que más se acomode a sus necesidades
