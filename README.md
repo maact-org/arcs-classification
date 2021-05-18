@@ -1,10 +1,10 @@
-# Clasificador de sentimientos
-Modelo clasificador por sentimientos
-## Requerimientos
+# Requerimientos
 Instalar requerimientos de python
 ```bash
 pip install -r requirements
 ```
+# Clasificador de sentimientos
+Modelo clasificador por sentimientos
 ## Entrenar
 ### 1. Customización de la configuración del entrenamiento en archivo /settings.py
 ``` python
