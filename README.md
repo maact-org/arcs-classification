@@ -77,25 +77,25 @@ El usuario puede realizar su propia función de lectura de datos dependiendo del
 ``` python
 df = pd.read_csv('su_ruta/nombre.csv')
 ```
-### 3. Creación del tokenizer
+### 2. Creación del tokenizer
 ``` python
 tokenizer = BertTokenizer.from_pretrained(st.PRE_TRAINED_MODEL, do_lower_case=False)
 ```
-### 4. Tokenizar datos
+### 3. Tokenizar datos
 Cabe recordar que el tokenizer recibe datos de tipo string
 ``` python
 data_loader = get_prepared_dataset(df, tokenizer, st.MAX_LEN, st.BATCH_SIZE)
 ```
-### 5. Instanciar modelo
+### 4. Instanciar modelo
 ``` python
 model = SentimentClassifier(st.PRE_TRAINED_MODEL, 'sentiment_m_cleaned')
 model.to(st.DEVICE)
 ```    
-### 6. Cargar diccionario de estados
+### 5. Cargar diccionario de estados
 ``` python
 model.load_state_dict(torch.load('su_ruta/modelo.bin', map_location='cpu'))
 ```  
-### 7. Predecir
+### 6. Predecir
 Se retorna un array de 1 posiciones por cada libro que contiene una probabilidad. Si es mayor a 5 el sentimiento es positivo, de lo contrario es negativo.
 ``` python
    predictions = []
@@ -114,7 +114,7 @@ Se retorna un array de 1 posiciones por cada libro que contiene una probabilidad
          preds = np.asarray(preds)
          data = np.vstack((pred for pred in preds))
 ``` 
-### 8. Disponer datos de salida como se requiera
+### 7. Disponer datos de salida como se requiera
 El usuario debe escoger la forma de almacenamiento para los datos de salida que más se acomode a sus necesidades
 
 # Clasificador de arcos
