@@ -60,15 +60,14 @@ test_data_loader = get_prepared_dataset(df_raw_test, tokenizer, st.MAX_LEN, st.B
 model = SentimentClassifier(st.PRE_TRAINED_MODEL, 'sentiment_m_cleaned')
 model.to(st.DEVICE)
 ```    
-### 7. Crear optimizador
+### 7. Crear optimizador y crear función de pérdida
 ``` python
  optimizer = AdamW(model.parameters(), lr=2e-5, correct_bias=False)
 ```  
-### 8. Crear función de pérdida
 ``` python
 loss_fn = nn.BCELoss().to(st.DEVICE)
 ``` 
-### 9. Entrenar
+### 8. Entrenar
 ``` python
 train_model(model, loss_fn, optimizer, train_data_loader, test_data_loader)
 ```  
