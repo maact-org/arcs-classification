@@ -159,8 +159,12 @@ model.model = trn.train_model_with_csv(
 model.save_model(file='data/arcs_classifier.h5')
 ``` 
 ## Predecir
-### 1. Obtención de outputs provinientes del modelo clasificador de sentimientos
+El ejemplo se encuentra en arcs-classification/example_analyzer.py
+### 1. Lectura de datos
 ``` python
+file_names = os.listdir(EXAMPLE_PATH)
+files = [open(EXAMPLE_PATH + name) for name in file_names]
+books = [file.read() for file in files]
 ```
 ### 2. Instanciar modelo
 ``` python
@@ -170,10 +174,23 @@ model = ArcModel(input_shape=(33, 1))
 ``` python
 model.load_model(file='data/arcs_classifier.h5')
 ```  
-### 4. Predecir
-Se retorna un array de 6 posiciones por cada libro que contiene la probabilidad del libro por cada arco.
+### 4. Tokenizar y pasar por el modelo de sentimientos
 ``` python
-model.model.predict(data_set)
+    books = [file.read() for file in files]
+    anlzr = Analyzer(
+        hedonometer_path=HEDONOMETER,
+        tokenizer_path=st.PRE_TRAINED_MODEL
+    )
+```
+### 5. Predecir
+Sólo un libro
+``` python
+ arc = anlzr.predict_book_arc(books[0])
 ``` 
-### 5. Disponer datos de salida como se requiera
+Varios libros
+``` python
+ arcs = anlzr.predict_multiple_books(books)
+``` 
+Se retorna un array de 6 posiciones por cada libro que contiene la probabilidad del libro por cada arco.
+### 6. Disponer datos de salida como se requiera
 El usuario debe escoger la forma de almacenamiento para los datos de salida que más se acomode a sus necesidades
