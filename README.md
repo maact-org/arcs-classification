@@ -48,7 +48,7 @@ SAVE_PATH = 'hedonometer/data/best_{}.bin'
 ### 5. Tokenizar datos
 Datos de entrenamiento
 ``` python
-  train_data_loader = get_prepared_dataset(df_raw_train, tokenizer, st.MAX_LEN, st.BATCH_SIZE)
+train_data_loader = get_prepared_dataset(df_raw_train, tokenizer, st.MAX_LEN, st.BATCH_SIZE)
     
 ```
 Datos de evaluación
@@ -62,15 +62,15 @@ model.to(st.DEVICE)
 ```    
 ### 7. Crear optimizador
 ``` python
-    optimizer = AdamW(model.parameters(), lr=2e-5, correct_bias=False)
+ optimizer = AdamW(model.parameters(), lr=2e-5, correct_bias=False)
 ```  
 ### 8. Crear función de pérdida
 ``` python
-    loss_fn = nn.BCELoss().to(st.DEVICE)
+loss_fn = nn.BCELoss().to(st.DEVICE)
 ``` 
 ### 9. Entrenar
 ``` python
-    train_model(model, loss_fn, optimizer, train_data_loader, test_data_loader)
+train_model(model, loss_fn, optimizer, train_data_loader, test_data_loader)
 ```  
 ## Predecir
 ### 1. Lectura de datos
@@ -80,7 +80,7 @@ df = pd.read_csv('su_ruta/nombre.csv')
 ```
 ### 3. Creación del tokenizer
 ``` python
-    tokenizer = BertTokenizer.from_pretrained(st.PRE_TRAINED_MODEL, do_lower_case=False)
+tokenizer = BertTokenizer.from_pretrained(st.PRE_TRAINED_MODEL, do_lower_case=False)
 ```
 ### 4. Tokenizar datos
 Cabe recordar que el tokenizer recibe datos de tipo string
