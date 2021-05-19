@@ -39,6 +39,4 @@ class SentimentClassifier(nn.Module):
                 predictions += [outputs]
         for pre in predictions:
             preds += [pre.cpu().numpy()]
-        preds = np.asarray(preds)
-        data = np.vstack((pred for pred in preds))
-        return data
+        return np.concatenate(preds)

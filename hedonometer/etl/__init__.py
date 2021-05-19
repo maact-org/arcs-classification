@@ -1,4 +1,3 @@
-
 import torch
 import pandas as pd
 import numpy as np
@@ -29,14 +28,15 @@ def get_prepared_dataset(df: pd.DataFrame, tokenizer, max_len, batch_size):
     :param batch_size: Batch size
     :return: A data loader for training or validation
     """
-
-    le = get_label_encoder()
-    df['tag'] = le.transform(df.tag)
+    if 'tag' in df:
+        le = get_label_encoder()
+        df['tag'] = le.transform(df.tag)
+    else:
+        df['tag'] = 0
 
     ds = TweeterDataSet(
         texts=df.text,
         targets=df.tag,
-        label_encoder=le,
         tokenizer=tokenizer,
         max_len=max_len
     )
@@ -48,10 +48,9 @@ def get_prepared_dataset(df: pd.DataFrame, tokenizer, max_len, batch_size):
 
 
 class TweeterDataSet(Dataset):
-    def __init__(self, texts: pd.DataFrame, tokenizer, max_len, targets=None, label_encoder=None, n_classes=12):
+    def __init__(self, texts: pd.DataFrame, tokenizer, max_len, targets=None, n_classes=12):
         self.texts = texts
         self.targets = targets
-        self.label_encoder = label_encoder
         self.tokenizer = tokenizer
         self.max_len = max_len
         self.n_classes = n_classes
